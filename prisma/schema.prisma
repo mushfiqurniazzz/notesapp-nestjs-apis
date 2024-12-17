@@ -17,6 +17,7 @@ model Users {
   id         String   @id @default(uuid())
   name       String
   email      String   @unique
+  password   String
   notes      Notes[]  @relation("Notes")
   createdAt  DateTime @default(now())
   modifiedAt DateTime @updatedAt
