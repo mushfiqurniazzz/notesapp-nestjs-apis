@@ -12,4 +12,13 @@ const createUser = z.object({
     .min(6, 'Password needs to be atleast of 6 characters.'),
 });
 
-export { createUser };
+const login = z.object({
+  email: z
+    .string({ message: 'You have not provided an email.' })
+    .email('Invalid email format.'),
+  password: z
+    .string({ message: 'You have not provided a password.' })
+    .min(6, 'Password needs to be atleast of 6 characters.'),
+});
+
+export { createUser, login };
