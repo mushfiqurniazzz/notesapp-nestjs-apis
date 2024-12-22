@@ -18,10 +18,10 @@ export class AuthService {
     );
   };
 
-  verifyToken = (token: string): boolean => {
+  verifyToken = (token: string): { id: string } => {
     try {
-      jwt.verify(token, this.jwtSecret);
-      return true;
+      const decodeData = jwt.verify(token, this.jwtSecret);
+      return decodeData as { id: string };
     } catch (error) {
       throw new HttpException(
         {

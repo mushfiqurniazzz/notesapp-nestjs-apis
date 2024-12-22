@@ -1,10 +1,9 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { createUser, login } from './users.zod';
-import { ZodError } from 'zod';
 import { hashPassword, comparePassword } from 'src/utils/hashing';
-import { Prisma, Users } from '@prisma/client';
 import { AuthService } from 'src/auth/auth.service';
+import { Users } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -14,7 +13,9 @@ export class UsersService {
   ) {}
 
   //create user route
-  createUser = async (data: typeof createUser): Promise<{}> => {
+  createUser = async (
+    data: typeof createUser,
+  ): Promise<{ state: string; message: string; id: string }> => {
     const validateData = createUser.safeParse(data);
 
     if (!validateData.success) {
@@ -123,6 +124,63 @@ export class UsersService {
         state: 'success',
         message: 'User logged in.',
         token,
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          state: 'error',
+          message: 'Something went wrong.',
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  };
+
+  //delete user route
+  deleteUser = async (
+    token: string,
+  ): Promise<{
+    state: string;
+    message: string;
+  }> => {
+    const verifyUser = this.authService.verifyToken(token);
+
+    if (!verifyUser) {
+      throw new HttpException(
+        {
+          state: 'error',
+          message: 'Can not delete account, login first.',
+        },
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    const foundUser = await this.prisma.users.findUnique({
+      where: {
+        id: verifyUser.id,
+      },
+    });
+
+    if (!foundUser) {
+      throw new HttpException(
+        {
+          state: 'error',
+          message: 'No user found.',
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    try {
+      await this.prisma.users.delete({
+        where: {
+          id: verifyUser.id,
+        },
+      });
+
+      return {
+        state: 'success',
+        message: 'User has been deleted.',
       };
     } catch (error) {
       throw new HttpException(

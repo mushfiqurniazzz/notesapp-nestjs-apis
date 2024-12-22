@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, Post } from '@nestjs/common';
+import { Body, Controller, Delete, HttpCode, Post, Req } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { createUser, login } from './users.zod';
 
@@ -15,5 +15,12 @@ export class UsersController {
   @HttpCode(200)
   login(@Body() data: typeof login) {
     return this.usersService.login(data);
+  }
+
+  @Delete()
+  deleteUser(@Req() req: Request) {
+    return this.usersService.deleteUser(
+      req.headers['authorization'].split(' ')[1] as string,
+    );
   }
 }
