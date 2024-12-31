@@ -18,20 +18,18 @@ model Users {
   name       String
   email      String   @unique
   password   String
-  notes      Notes[]  @relation("Notes")
   createdAt  DateTime @default(now())
   modifiedAt DateTime @updatedAt
-  Notes      Notes[]
+  notes      Notes[]
 }
 
 model Notes {
   id         String   @id @default(uuid())
-  title      String
-  paragraph  String
-  author     Users    @relation("Notes", fields: [authorId], references: [id])
+  title      String?
+  paragraph  String?
   authorId   String
   createdAt  DateTime @default(now())
   modifiedAt DateTime @updatedAt
-  Users      Users?   @relation(fields: [usersId], references: [id])
-  usersId    String?
+
+  author Users @relation(fields: [authorId], references: [id])
 }
