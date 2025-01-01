@@ -2,6 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { AuthService } from 'src/auth/auth.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { createNoteZod } from './notes.zod';
+import { Notes } from '@prisma/client';
 
 @Injectable()
 export class NotesService {
@@ -29,16 +30,6 @@ export class NotesService {
 
     const verifyUser = this.authService.verifyToken(token);
 
-    if (!verifyUser) {
-      throw new HttpException(
-        {
-          state: 'error',
-          message: 'Can not create a note, login first.',
-        },
-        HttpStatus.UNAUTHORIZED,
-      );
-    }
-
     const userId = verifyUser.id;
 
     try {
@@ -54,6 +45,36 @@ export class NotesService {
         state: 'success',
         message: 'Note added.',
         id: noteDocument.id,
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          state: 'error',
+          message: 'Something went wrong.',
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  };
+
+  getNotes = async (
+    token: string,
+  ): Promise<{ state: string; message: string; data: Notes[] }> => {
+    const verifyUser = this.authService.verifyToken(token);
+
+    const userId = verifyUser.id;
+
+    try {
+      const postDocuments = await this.prisma.notes.findMany({
+        where: {
+          authorId: userId,
+        },
+      });
+
+      return {
+        state: 'success',
+        message: 'Notes have been fetched.',
+        data: postDocuments,
       };
     } catch (error) {
       throw new HttpException(
