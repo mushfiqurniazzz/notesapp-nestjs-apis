@@ -172,6 +172,12 @@ export class UsersService {
     }
 
     try {
+      await this.prisma.notes.deleteMany({
+        where: {
+          authorId: verifyUser.id,
+        },
+      });
+
       await this.prisma.users.delete({
         where: {
           id: verifyUser.id,
