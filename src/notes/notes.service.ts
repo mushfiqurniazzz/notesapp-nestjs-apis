@@ -178,4 +178,60 @@ export class NotesService {
       );
     }
   };
+
+  deleteNote = async (
+    noteId: string,
+    token: string,
+  ): Promise<{ state: string; message: string }> => {
+    const verifyUser = this.authService.verifyToken(token);
+
+    const userId = verifyUser.id;
+
+    const postDocument = await this.prisma.notes.findUnique({
+      where: {
+        id: noteId,
+      },
+    });
+
+    if (!postDocument) {
+      throw new HttpException(
+        {
+          state: 'error',
+          message: 'No note found.',
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    if (postDocument.authorId !== userId) {
+      throw new HttpException(
+        {
+          state: 'error',
+          message: 'You are not the author to delete this note',
+        },
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    try {
+      await this.prisma.notes.delete({
+        where: {
+          id: postDocument.id,
+        },
+      });
+
+      return {
+        state: 'success',
+        message: 'Note has been deleted.',
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          state: 'error',
+          message: 'Something went wrong.',
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  };
 }

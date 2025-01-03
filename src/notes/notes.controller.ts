@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpException,
@@ -71,6 +72,24 @@ export class NotesController {
     return this.notesService.updateNote(
       params.id,
       body,
+      req.headers['authorization'].split(' ')[1] as string,
+    );
+  }
+
+  @Delete(':id')
+  deleteNote(@Param() params: any, @Req() req: Request) {
+    if (!req.headers['authorization']) {
+      throw new HttpException(
+        {
+          state: 'error',
+          message: 'Can not delete your note, login first.',
+        },
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    return this.notesService.deleteNote(
+      params.id,
       req.headers['authorization'].split(' ')[1] as string,
     );
   }
