@@ -2,13 +2,16 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
   HttpException,
   HttpStatus,
+  Param,
   Post,
+  Put,
   Req,
 } from '@nestjs/common';
 import { NotesService } from './notes.service';
-import { createNoteZod } from './notes.zod';
+import { createNoteZod, updateNoteZod } from './notes.zod';
 
 @Controller('notes')
 export class NotesController {
@@ -45,6 +48,29 @@ export class NotesController {
     }
 
     return this.notesService.getNotes(
+      req.headers['authorization'].split(' ')[1] as string,
+    );
+  }
+
+  @Put(':id')
+  updateNote(
+    @Param() params: any,
+    @Req() req: Request,
+    @Body() body: typeof updateNoteZod,
+  ) {
+    if (!req.headers['authorization']) {
+      throw new HttpException(
+        {
+          state: 'error',
+          message: 'Can not update your note, login first.',
+        },
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    return this.notesService.updateNote(
+      params.id,
+      body,
       req.headers['authorization'].split(' ')[1] as string,
     );
   }
